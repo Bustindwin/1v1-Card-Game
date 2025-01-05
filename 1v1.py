@@ -8,9 +8,17 @@ class Cards:
     def display(self):
         print(self.name,"of",self.suit+",",self.value)
 
-#def shuffle(deck):
-    #for i in 
+        
 
+def shuffle(deck):
+    for i in range(52):
+        rand=random.randint(0,51)
+        deck[i], deck[rand] = deck[rand], deck[i]
+
+def display(deck):
+    for i in range(52):
+        #print(i)
+        deck[i].display()
 
 def main():
     deck=[]
@@ -29,9 +37,10 @@ def main():
                 value=11
             card=Cards(name,value,suit[j])
             deck.append(card)
-    for i in range(52):
-        deck[i].display()
-    
+    display(deck)
+    shuffle(deck)
+    display(deck)
+
     
 
 main()
