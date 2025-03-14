@@ -20,7 +20,15 @@ class Cards:
     def getvalue(self):
         return self.__value
 
-        
+    def getsuit(self):
+        return self.__suit
+
+    def getname(self):
+        return self.__name
+
+    def getaddvalue(self):
+        return self.__addvalue
+
     def display(self):
         print(self.__name,"of",self.__suit+",",self.__value)
 
@@ -28,7 +36,7 @@ class Cards:
     def sname(self):
         return self.__name+" of "+self.__suit
 
-
+    
     def gettotvalue(self):
         return self.__value+self.__addvalue
 
@@ -132,6 +140,7 @@ def sortcards(cards):
         cards[i]=cards[index]
         cards[index]=temp
     return cards
+
             
 def deal(deck,p1,p2):
     count=0
@@ -162,20 +171,20 @@ def handle_p(player_socket,player):
     player_socket.close()
 
 
-def fiverandom(hand):
-    five=[]
-    for i in range(5):
+def randomamount(hand,num):
+    amount=[]
+    for i in range(num):
         while True:
             rand=random.randint(0,len(hand)-1)
-            if hand[rand] not in five:
+            if hand[rand] not in amount:
                 break
-        five.append(hand[rand])
-    return five
+        amount.append(hand[rand])
+    return amount
 
 
 def isfourofakind(played):
     if not len(played)>=4:
-        print(1)
+        #print(1)
         return False
     else:
         #print(2)
@@ -189,9 +198,89 @@ def isfourofakind(played):
     return False
 
 
+def isstraightflush(played):
+    if len(played)<5:
+        return False
+    else:
+        for i in range(0,len(played)):
+            possible=[]
+            card=played[i]
+            #print("Initial card:",played[i].sname())
+            for j in range(4):
+                #print("The current card is",card.sname())
+                card=getnextcard(card)
+                #print("The next card is",card.sname())
+                #print()
+                if card.getvalue()==11:
+                    break
+                possible.append(card)
+            '''
+            displaycards(possible)
+            print("One card is",possible[0].getvalue()," and the other is",played[1].getvalue())
+            if samecard(possible[0],played[1]):
+                print("Matches")
+            else:
+                print("Doesn't match")
+            '''
+            if card.getvalue()==11:
+                continue
+            if ifin(possible,played):
+                print("The straight flush:",end="")
+                print(played[i].sname(),end=",")
+                displaycards(possible)
+                return True
+        return False
 
 
+def getnextcard(card):
+    '''
+    print(card.sname())c
+    print("Value:",card.getvalue())
+    print("Add Value:",card.getaddvalue())
+    '''
+    face=["Jack","Queen","King"]
+    if card.getvalue()>0 and card.getvalue()<10:
+        '''
+        print(card.sname())
+        print("Next Value:",card.getvalue()+1)
+        '''
+        return Cards(str(card.getvalue()+1),card.getvalue()+1,0,card.getsuit())
+    elif card.getvalue()==10:
+        if card.getname()=="King":
+            return Cards("Ace",11,0,card.getsuit())
+        else:
+            '''
+            print(card.sname())
+            print("Value:",card.getvalue())
+            print("Add Value:",card.getaddvalue())
+            print("Tot Value:",card.gettotvalue())
+            print("Minused:",round(card.gettotvalue()-10,2))
+            print("Face num:",int(round((round(card.gettotvalue()-10,2)*10))))
+            '''
+            return Cards(face[int(round((round(card.gettotvalue()-10,2)*10)))],10,card.getaddvalue()+.1,card.getsuit())
+    else:
+        return Cards("2",2,0,card.getsuit())
 
+
+def samecard(card1,card2):
+    if card1.sname()==card2.sname():
+        return True
+    return False
+
+
+def ifin(hand1,hand2):
+    count=0
+    #print(len(hand1))
+    for i in range(len(hand1)):
+        for j in range(len(hand2)):
+            if samecard(hand1[i],hand2[j]):
+                count+=1
+                break
+        if count==len(hand1):
+            return True
+    return False
+
+        
 def main():
     p1=Person("P1")
     p2=Person("P2")
@@ -204,21 +293,23 @@ def main():
             if (i<9):
                 name=str(i+2)
                 value=i+2
+                #print("value:",value)
             elif (i>8 and i<12):
                 name=names[i-9]
                 value=10
-                addvalue+=((i-9)*.1)
+                addvalue+=(round((i-8)*.1,2))
+                #print(addvalue)
             else:
                 name="Ace"
                 value=11
             card=Cards(name,value,addvalue,suit[j])
             deck.append(card)
     #display(deck)
-    shuffle(deck)
+    #shuffle(deck)
     #print("Shuffled deck\n")
     #display(deck)
     #print("------------------------------------")
-    deal(deck,p1,p2)
+    #deal(deck,p1,p2)
     #print("Player 1's hand\n")
     #display(p1)
     #print("------------------------------------")
@@ -226,10 +317,23 @@ def main():
     #display(p2)
     #print("------------------------------------")
     #print("Remaining Deck\n")
-    #display(deck)
+    '''
+    displaydeck(deck[0:30])
+    if (isstraightflush(deck[0:20:4])):
+        print("True")
+    else:
+        print("False")  
     #print("------------------------------------")
     '''
-    displaycards(deck[0:4])
+    '''
+    count=1
+    for i in range(len(deck)):
+        print("Current card:",deck[i].sname())
+        print("Next card:",getnextcard(deck[i]).sname())
+        print(count)
+        print()
+        count+=1
+    displaycards(deck[0:5])
     if (isfourofakind(deck[0:4])):
         print("True")
     else:
@@ -237,20 +341,23 @@ def main():
     print("Player 1's cards",end=":")
     displaycards(p1.gethand())
     '''
-    count=0
-    while True:
-        randoms=fiverandom(deck)
-        print("Five randoms are:",end="")
-        displaycards(randoms)
-        played=sortcards(randoms)
-        print("Five randoms sorted are:",end="")
-        displaycards(played)
-        if isfourofakind(played):
-            break
-        print("\n")
-        count+=1
-    print("Count:"+str(count))
     
+    count=0
+    amount=15
+    while True:
+        while True:
+            randoms=randomamount(deck,amount)
+            print(amount,"randoms are:",end="")
+            displaycards(randoms)
+            played=sortcards(randoms)
+            print(amount,"randoms sorted are:",end="")
+            displaycards(played)
+            if isstraightflush(played):
+                break
+            print("\n")
+            count+=1
+        input()
+    #print("Count:"+str(count))
     '''
     server_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('localhost', 5000))
@@ -269,4 +376,4 @@ main()
 
 #rule of thumb just go with the trajectory of the game, keep it simple for now
 #now maybe integrate what type of combo your cards that you selected are
-#make it so that 5 cards can only be played, sorted function is not correct(doesn't sort face cards and 10's correctly)
+#move on to other combos like (three of a kind, fullhouse), sorted function is not correct(doesn't sort face cards and 10's correctly)
