@@ -95,19 +95,6 @@ class Person:
 
 
 
-'''    
-class Combo:
-    
-    def __init__(self,hand):
-        self.__hand=hand
-        
-    def determinecombo(self):
-''' 
-
-        
-
-
-
 def shuffle(deck):
     for i in range(52):
         rand=random.randint(0,51)
@@ -198,6 +185,90 @@ def isfourofakind(played):
     return False
 
 
+def isthreeofakind(played):
+    if not len(played)>=3:
+        #print(1)
+        return False
+    else:
+        #print(2)
+        for i in range(len(played)):
+            if (i+2)>=(len(played)):
+                break
+            else:
+                #print(3)
+                '''
+                if played[i].gettotvalue()==played[i+2].gettotvalue():
+                    print("The three of a kind:",end="")
+                    displaycards(played[i:i+3])
+                    print()
+                    return True
+                '''
+    return False
+
+
+def isthreeofakind(played):
+    if not len(played)>=3:
+        #print(1)
+        return False
+    else:
+        #print(2)
+        for i in range(len(played)):
+            if (i+2)>=(len(played)):
+                break
+            else:
+                #print(3)
+                '''
+                if played[i].gettotvalue()==played[i+2].gettotvalue():
+                    print("The three of a kind:",end="")
+                    displaycards(played[i:i+3])
+                    print()
+                    return True
+                '''
+    return False
+
+
+def isthreeofakind(played):
+    if not len(played)>=3:
+        #print(1)
+        return False
+    else:
+        #print(2)
+        for i in range(len(played)):
+            if (i+2)>=(len(played)):
+                break
+            else:
+                #print(3)
+                '''
+                if played[i].gettotvalue()==played[i+2].gettotvalue():
+                    print("The three of a kind:",end="")
+                    displaycards(played[i:i+3])
+                    print()
+                    return True
+                '''
+    return False
+
+
+def isstraight(played):
+    count=0
+    if len(played)>=3:
+        for i in range(played):
+            if (i+1)>=len(played):
+                break
+            if (played[i].getvalue()+2)<=(played[i+1].getvalue()):
+                return False
+            if played[i].getvalue()==10:
+                if played[i].gettotvalue()<10.3:
+                    if (played[i].gettotvalue()+.2)<=(played[i+1].gettotvalue()):
+                        return False
+                    if (played[i].gettotvalue()+.1)==(played[i+1].gettotvalue()):
+                        count+=1
+            if (played[i].getvalue()+1)==(played[i+1].getvalue()):
+                count+=1
+    if count<2:
+        return False
+    return True
+                    
+                
 def isstraightflush(played):
     if len(played)<5:
         return False
@@ -224,11 +295,13 @@ def isstraightflush(played):
             '''
             if card.getvalue()==11:
                 continue
+            '''
             if ifin(possible,played):
                 print("The straight flush:",end="")
                 print(played[i].sname(),end=",")
                 displaycards(possible)
                 return True
+            '''
         return False
 
 
@@ -341,7 +414,24 @@ def main():
     print("Player 1's cards",end=":")
     displaycards(p1.gethand())
     '''
-    
+    '''
+    count=0
+    amount=7
+    while True:
+        while True:
+            randoms=randomamount(deck,amount)
+            print(amount,"randoms are:",end="")
+            displaycards(randoms)
+            played=sortcards(randoms)
+            print(amount,"randoms sorted are:",end="")
+            displaycards(played)
+            if isthreeofakind(played):
+                break
+            print("\n")
+            count+=1
+        input()
+    '''
+    '''
     count=0
     amount=15
     while True:
@@ -358,6 +448,7 @@ def main():
             count+=1
         input()
     #print("Count:"+str(count))
+    '''
     '''
     server_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('localhost', 5000))
