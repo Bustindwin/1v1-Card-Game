@@ -169,61 +169,13 @@ def randomamount(hand,num):
     return amount
 
 
-def isfourofakind(played):
-    if not len(played)>=4:
-        #print(1)
-        return False
-    else:
-        #print(2)
-        for i in range(len(played)):
-            if (i+3)>=(len(played)):
+def ispair(played):
+    if len(played)>=2:
+        for i in range(len(played)-1,-1,-1):
+            if i-1<0:
                 break
-            else:
-                #print(3)
-                if played[i].gettotvalue()==played[i+3].gettotvalue():
-                    return True
-    return False
-
-
-def isthreeofakind(played):
-    if not len(played)>=3:
-        #print(1)
-        return False
-    else:
-        #print(2)
-        for i in range(len(played)):
-            if (i+2)>=(len(played)):
-                break
-            else:
-                #print(3)
-                '''
-                if played[i].gettotvalue()==played[i+2].gettotvalue():
-                    print("The three of a kind:",end="")
-                    displaycards(played[i:i+3])
-                    print()
-                    return True
-                '''
-    return False
-
-
-def isthreeofakind(played):
-    if not len(played)>=3:
-        #print(1)
-        return False
-    else:
-        #print(2)
-        for i in range(len(played)):
-            if (i+2)>=(len(played)):
-                break
-            else:
-                #print(3)
-                '''
-                if played[i].gettotvalue()==played[i+2].gettotvalue():
-                    print("The three of a kind:",end="")
-                    displaycards(played[i:i+3])
-                    print()
-                    return True
-                '''
+            if played[i].gettotvalue()==played[i-1].gettotvalue():
+                return True
     return False
 
 
@@ -251,11 +203,11 @@ def isthreeofakind(played):
 def isstraight(played):
     count=0
     if len(played)>=3:
-        for i in range(played):
+        for i in range(len(played)):
             if (i+1)>=len(played):
                 break
             if (played[i].getvalue()+2)<=(played[i+1].getvalue()):
-                return False
+                count=0
             if played[i].getvalue()==10:
                 if played[i].gettotvalue()<10.3:
                     if (played[i].gettotvalue()+.2)<=(played[i+1].gettotvalue()):
@@ -264,11 +216,66 @@ def isstraight(played):
                         count+=1
             if (played[i].getvalue()+1)==(played[i+1].getvalue()):
                 count+=1
-    if count<2:
-        return False
-    return True
+            if count>=2:
+                return True
+    return False
                     
+
+def isflush(played):
+    if len(played)>=5:
+        samounts=[0,0,0,0]
+        for i in range(len(played)):
+            if played[i].getsuit()=="Spade":
+                samounts[0]+=1
+            if played[i].getsuit()=="Club":
+                samounts[1]+=1
+            if played[i].getsuit()=="Diamond":
+                samounts[2]+=1
+            if played[i].getsuit()=="Heart":
+                samounts[3]+=1
+        for i in range(len(samounts)):
+            if samounts[i]>=5:
+                return True
+    return False
+
+
+def isfullhouse(played):
+    pairs=[]
+    trips=[]
+    if len(played)>=5:
+        for i in range(len(played)-1,-1,-1):
+            if i-1<0:
+                break
+            if played[i].gettotvalue()==played[i-1].gettotvalue():
+                pairs.append(played[i-1:i+1])
+        for i in range(len(played)-1,-1,-1):
+            if i-2<0:
+                break
+            if played[i].gettotvalue()==played[i-2].gettotvalue():
+                trips.append(played[i-2:i+1])
+        for i in range(len(trips)):
+            for j in range(len(pairs)):
+                if trips[i][0].gettotvalue()!=pairs[j][0].gettotvalue():
+                    return True
+    return False
+
+
+def isfourofakind(played):
+    if not len(played)>=4:
+        #print(1)
+        return False
+    else:
+        #print(2)
+        for i in range(len(played)):
+            if (i+3)>=(len(played)):
+                break
+            else:
+                #print(3)
+                if played[i].gettotvalue()==played[i+3].gettotvalue():
+                    return True
+    return False
                 
+
 def isstraightflush(played):
     if len(played)<5:
         return False
@@ -359,7 +366,7 @@ def main():
     p2=Person("P2")
     deck=[]
     names=["Jack","Queen","King"]
-    suit=["Spade","Club","Diamond","Hearts"]
+    suit=["Spade","Club","Diamond","Heart"]
     for i in range(13):
         for j in range(4):
             addvalue=0
@@ -377,46 +384,23 @@ def main():
                 value=11
             card=Cards(name,value,addvalue,suit[j])
             deck.append(card)
-    #display(deck)
-    #shuffle(deck)
-    #print("Shuffled deck\n")
-    #display(deck)
-    #print("------------------------------------")
-    #deal(deck,p1,p2)
-    #print("Player 1's hand\n")
-    #display(p1)
-    #print("------------------------------------")
-    #print("Player 2's hand\n")
-    #display(p2)
-    #print("------------------------------------")
-    #print("Remaining Deck\n")
     '''
-    displaydeck(deck[0:30])
-    if (isstraightflush(deck[0:20:4])):
-        print("True")
-    else:
-        print("False")  
-    #print("------------------------------------")
-    '''
-    '''
-    count=1
-    for i in range(len(deck)):
-        print("Current card:",deck[i].sname())
-        print("Next card:",getnextcard(deck[i]).sname())
-        print(count)
-        print()
-        count+=1
-    displaycards(deck[0:5])
-    if (isfourofakind(deck[0:4])):
-        print("True")
-    else:
-        print("False")
-    print("Player 1's cards",end=":")
-    displaycards(p1.gethand())
-    '''
-    '''
+    display(deck)
+    shuffle(deck)
+    print("Shuffled deck\n")
+    display(deck)
+    print("------------------------------------")
+    deal(deck,p1,p2)
+    print("Player 1's hand\n")
+    display(p1)
+    print("------------------------------------")
+    print("Player 2's hand\n")
+    display(p2)
+    print("------------------------------------")
+    print("Remaining Deck\n")
+
     count=0
-    amount=7
+    amount=10
     while True:
         while True:
             randoms=randomamount(deck,amount)
@@ -425,29 +409,15 @@ def main():
             played=sortcards(randoms)
             print(amount,"randoms sorted are:",end="")
             displaycards(played)
-            if isthreeofakind(played):
+            if isflush(played):
+                print("Is flush")
                 break
             print("\n")
             count+=1
-        input()
-    '''
-    '''
-    count=0
-    amount=15
-    while True:
-        while True:
-            randoms=randomamount(deck,amount)
-            print(amount,"randoms are:",end="")
-            displaycards(randoms)
-            played=sortcards(randoms)
-            print(amount,"randoms sorted are:",end="")
-            displaycards(played)
-            if isstraightflush(played):
-                break
-            print("\n")
-            count+=1
-        input()
-    #print("Count:"+str(count))
+            input()
+        break
+    print("Count:"+str(count))
+    
     '''
     '''
     server_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
