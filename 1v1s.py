@@ -180,49 +180,55 @@ def ispair(played):
 
 
 def isthreeofakind(played):
-    if not len(played)>=3:
-        #print(1)
-        return False
-    else:
+    if len(played)>=3:
         #print(2)
-        for i in range(len(played)):
-            if (i+2)>=(len(played)):
+        for i in range(len(played)-1,-1,-1):
+            if (i-2)<0:
                 break
             else:
                 #print(3)
-                '''
-                if played[i].gettotvalue()==played[i+2].gettotvalue():
-                    print("The three of a kind:",end="")
-                    displaycards(played[i:i+3])
-                    print()
-                    return True
-                '''
-    return False
+                if played[i].gettotvalue()==played[i-2].gettotvalue():
+                    # print("The three of a kind:",end="")
+                    # displaycards(played[i:i+3])
+                    # print()
+                    return played[i-2:i+1]
+    return []
 
 
 def isstraight(played):
     count=0
+    possible=[]
     if len(played)>=3:
-        for i in range(len(played)):
-            if (i+1)>=len(played):
+        for i in range(len(played)-1,-1,-1):
+            if (i-1)<0:
                 break
-            if (played[i].getvalue()+2)<=(played[i+1].getvalue()):
-                count=0
-            if played[i].getvalue()==10:
-                if played[i].gettotvalue()<10.3:
-                    if (played[i].gettotvalue()+.2)<=(played[i+1].gettotvalue()):
-                        return False
-                    if (played[i].gettotvalue()+.1)==(played[i+1].gettotvalue()):
-                        count+=1
-            if (played[i].getvalue()+1)==(played[i+1].getvalue()):
-                count+=1
-            if count>=2:
-                return True
-    return False
+            if played[i].getvalue()==11:
+                if (played[i-1].getname()=="King"):
+                    possible.append(played[i-1:i+1])
+            elif played[i].gettotvalue()>10:
+                if (played[i].gettotvalue()-.2)>=(played[i-1].gettotvalue()):
+                    possible.clear()
+                if (played[i].gettotvalue()-.1)==(played[i-1].gettotvalue()):
+                    if len(possible)==0:
+                        possible.append(played[i])
+                    possible.append(played[i-1])
+                if len(possible)>=2 and (played[i].gettotvalue()-.2)>=(played[i-1].gettotvalue()):
+                    return possible
+            else:
+                if (played[i].getvalue()-2)>=(played[i-1].getvalue()):
+                    possible.clear()
+                if (played[i].getvalue()-1)==(played[i-1].getvalue()):
+                    if len(possible)==0:
+                        possible.append(played[i])
+                    possible.append(played[i-1])
+                if len(possible)>=2 and (played[i].getvalue()-2)>=(played[i-1].getvalue()):
+                    return possible
+    return []
                     
 
 def isflush(played):
     if len(played)>=5:
+        suits=["Spade","Club","Diamond","Heart"]
         samounts=[0,0,0,0]
         for i in range(len(played)):
             if played[i].getsuit()=="Spade":
@@ -235,8 +241,14 @@ def isflush(played):
                 samounts[3]+=1
         for i in range(len(samounts)):
             if samounts[i]>=5:
-                return True
-    return False
+                possible=[]
+                for j in range(len(played)-1,-1,-1):
+                    if played[j].getsuit()==suits[i]:
+                        possible.append(played[j])
+                    if len(possible)==5:
+                        break
+                return possible
+    return []
 
 
 def isfullhouse(played):
@@ -256,8 +268,8 @@ def isfullhouse(played):
         for i in range(len(trips)):
             for j in range(len(pairs)):
                 if trips[i][0].gettotvalue()!=pairs[j][0].gettotvalue():
-                    return True
-    return False
+                    return trips[i]+pairs[j]
+    return []
 
 
 def isfourofakind(played):
@@ -266,80 +278,78 @@ def isfourofakind(played):
         return False
     else:
         #print(2)
-        for i in range(len(played)):
-            if (i+3)>=(len(played)):
+        for i in range(len(played)-1,-1,-1):
+            if (i-3)<(0):
                 break
             else:
                 #print(3)
-                if played[i].gettotvalue()==played[i+3].gettotvalue():
-                    return True
-    return False
+                if played[i].gettotvalue()==played[i-3].gettotvalue():
+                    return played[i-3:i+1]
+    return []
                 
 
 def isstraightflush(played):
     if len(played)<5:
         return False
     else:
-        for i in range(0,len(played)):
+        for i in range(len(played)-1,-1,-1):
             possible=[]
             card=played[i]
-            #print("Initial card:",played[i].sname())
+            #print("Initial card:",card.getvalue())
             for j in range(4):
+                # print("Card:",card.getvalue(),',',card.getname())
+                # print(j)
+                if card.getvalue()==2:
+                    break
                 #print("The current card is",card.sname())
-                card=getnextcard(card)
+                card=getprevcard(card)
                 #print("The next card is",card.sname())
                 #print()
-                if card.getvalue()==11:
-                    break
                 possible.append(card)
-            '''
-            displaycards(possible)
-            print("One card is",possible[0].getvalue()," and the other is",played[1].getvalue())
-            if samecard(possible[0],played[1]):
-                print("Matches")
-            else:
-                print("Doesn't match")
-            '''
-            if card.getvalue()==11:
-                continue
-            '''
-            if ifin(possible,played):
-                print("The straight flush:",end="")
-                print(played[i].sname(),end=",")
-                displaycards(possible)
-                return True
-            '''
-        return False
+                
+            
+            # displaycards(possible)
+            # print("One card is",possible[0].getvalue()," and the other is",played[1].getvalue())
+            # if samecard(possible[0],played[1]):
+            #     print("Matches")
+            # else:
+            #     print("Doesn't match")
+            
+            if ifin(possible,played) and len(possible)>=4:
+                # print("The straight flush:",end="")
+                # print(played[i].sname(),end=",")
+                # displaycards(possible)
+                return possible
+        return []
 
 
-def getnextcard(card):
+def getprevcard(card):
     '''
     print(card.sname())c
     print("Value:",card.getvalue())
     print("Add Value:",card.getaddvalue())
     '''
-    face=["Jack","Queen","King"]
-    if card.getvalue()>0 and card.getvalue()<10:
+    other=["Ten","Jack","Queen"]
+    if card.gettotvalue()>2 and card.gettotvalue()<=10:
         '''
         print(card.sname())
         print("Next Value:",card.getvalue()+1)
         '''
-        return Cards(str(card.getvalue()+1),card.getvalue()+1,0,card.getsuit())
-    elif card.getvalue()==10:
-        if card.getname()=="King":
-            return Cards("Ace",11,0,card.getsuit())
+        return Cards(str(card.getvalue()-1),card.getvalue()-1,0,card.getsuit())
+    elif card.gettotvalue()>10:
+        if card.getname()=="Ace":
+            return Cards("King",10,.3,card.getsuit())
         else:
-            '''
-            print(card.sname())
-            print("Value:",card.getvalue())
-            print("Add Value:",card.getaddvalue())
-            print("Tot Value:",card.gettotvalue())
-            print("Minused:",round(card.gettotvalue()-10,2))
-            print("Face num:",int(round((round(card.gettotvalue()-10,2)*10))))
-            '''
-            return Cards(face[int(round((round(card.gettotvalue()-10,2)*10)))],10,card.getaddvalue()+.1,card.getsuit())
-    else:
-        return Cards("2",2,0,card.getsuit())
+            # print("Hello")
+            # print(card.sname())
+            # print("Value:",card.getvalue())
+            # print("Add Value:",card.getaddvalue())
+            # print("Tot Value:",card.gettotvalue())
+            # print("Minused:",round(card.gettotvalue()-10,2))
+            # print("Face num:",int(round((round(card.gettotvalue()-10.1,2)*10))))
+            
+            return Cards(other[int(round((round(card.gettotvalue()-10.1,2)*10)))],10,card.getaddvalue()-.1,card.getsuit())
+
 
 
 def samecard(card1,card2):
@@ -398,9 +408,9 @@ def main():
     display(p2)
     print("------------------------------------")
     print("Remaining Deck\n")
-
+    
     count=0
-    amount=10
+    amount=20
     while True:
         while True:
             randoms=randomamount(deck,amount)
@@ -409,14 +419,14 @@ def main():
             played=sortcards(randoms)
             print(amount,"randoms sorted are:",end="")
             displaycards(played)
-            if isflush(played):
-                print("Is flush")
+            if isstraightflush(played):
+                print("Is straight flush")
                 break
             print("\n")
             count+=1
             input()
         break
-    print("Count:"+str(count))
+    #print("Count:"+str(count))
     
     '''
     '''
@@ -435,6 +445,6 @@ def main():
     
 main()
 
-#rule of thumb just go with the trajectory of the game, keep it simple for now
+#rule of thumb just go with the trajectory of the game, keep it simple for now, maybe the more combination of cards the better like add rules from thirteen to make it more intersting like the type of combos
 #now maybe integrate what type of combo your cards that you selected are
 #move on to other combos like (three of a kind, fullhouse), sorted function is not correct(doesn't sort face cards and 10's correctly)
