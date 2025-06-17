@@ -175,8 +175,8 @@ def ispair(played):
             if i-1<0:
                 break
             if played[i].gettotvalue()==played[i-1].gettotvalue():
-                return True
-    return False
+                return played[i-1:i+1]
+    return []
 
 
 def isthreeofakind(played):
@@ -204,26 +204,41 @@ def isstraight(played):
                 break
             if played[i].getvalue()==11:
                 if (played[i-1].getname()=="King"):
-                    possible.append(played[i-1:i+1])
+                    possible.append(played[i])
+                    possible.append(played[i-1])
+                    print("Adding:",played[i].sname())
+                    print("Adding:",played[i-1].sname())
             elif played[i].gettotvalue()>10:
+                print("Cur:",played[i].sname(),", Val:",played[i].gettotvalue())
+                print("Next:",played[i-1].sname(),", Val:",played[i-1].gettotvalue())
+                print("Cur-next:",played[i].gettotvalue()-.1)
                 if (played[i].gettotvalue()-.2)>=(played[i-1].gettotvalue()):
+                    print("Going to clear")
+                    if len(possible)>=3:
+                        return possible
                     possible.clear()
-                if (played[i].gettotvalue()-.1)==(played[i-1].gettotvalue()):
+                if (round(played[i].gettotvalue()-.1,2))==(played[i-1].gettotvalue()):
                     if len(possible)==0:
                         possible.append(played[i])
+                        print("Adding:",played[i].sname())
                     possible.append(played[i-1])
-                if len(possible)>=2 and (played[i].gettotvalue()-.2)>=(played[i-1].gettotvalue()):
-                    return possible
+                    print("Adding:",played[i-1].sname())
+                # if len(possible)>=2 and (played[i].gettotvalue()-.2)>=(played[i-1].gettotvalue()):
+                #     return possible
             else:
                 if (played[i].getvalue()-2)>=(played[i-1].getvalue()):
+                    if len(possible)>=3:
+                        return possible
                     possible.clear()
                 if (played[i].getvalue()-1)==(played[i-1].getvalue()):
                     if len(possible)==0:
                         possible.append(played[i])
                     possible.append(played[i-1])
-                if len(possible)>=2 and (played[i].getvalue()-2)>=(played[i-1].getvalue()):
-                    return possible
-    return []
+                # if len(possible)>=2 and (played[i].getvalue()-2)>=(played[i-1].getvalue()):
+                #     return possible
+        if len(possible)<=2:
+            possible=[]
+    return possible
                     
 
 def isflush(played):
@@ -319,6 +334,7 @@ def isstraightflush(played):
                 # print("The straight flush:",end="")
                 # print(played[i].sname(),end=",")
                 # displaycards(possible)
+                possible.insert(0,played[i])
                 return possible
         return []
 
@@ -370,6 +386,46 @@ def ifin(hand1,hand2):
             return True
     return False
 
+
+def pickcombo(played):
+    combo=[]
+    if len(isstraightflush(played))!=0:
+        combo=isstraightflush(played)
+    
+    elif len(isfourofakind(played))!=0:
+        combo=isfourofakind(played)
+
+    elif len(isfullhouse(played))!=0:
+        combo=isfullhouse(played)
+
+    elif len(isstraight(played))!=0:
+        combo=isstraight(played)
+
+    elif len(isthreeofakind(played))!=0:
+        combo=isthreeofakind(played)
+    
+    elif len(ispair(played))!=0:
+        combo=ispair(played)
+
+    else:
+        combo.append(played[-1])
+    return combo
+        
+
+def testhand(deck,amount):
+    while True:
+        randoms=randomamount(deck,amount)
+        print(amount,"Randoms are:",end="")
+        displaycards(randoms)
+        played=sortcards(randoms)
+        print(amount,"Randoms sorted are:",end="")
+        displaycards(played)
+        print("Combo:",end="")
+        displaycards(pickcombo(played))
+        print("\n")
+        #count+=1
+        input()
+        
         
 def main():
     p1=Person("P1")
@@ -429,6 +485,7 @@ def main():
     #print("Count:"+str(count))
     
     '''
+    testhand(deck,10)
     '''
     server_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('localhost', 5000))
