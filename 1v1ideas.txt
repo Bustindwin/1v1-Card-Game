@@ -1,0 +1,13 @@
+rock paper scissors but with extra steps
+start with maybe 1000 points of health
+play cards at the same time
+maybe draw 8 cards instead of 5 (currently have 10 I think)
+
+-making it so that you can discard cards on each round then on the final round you show and see how has the better hand, better hand can either decimate the other person or not. 
+-Recoinnances might be needed with the friend vs friend cards
+-Maybe a seperate route if you don't want to discard. Make it fun too. But the discard function should have better incentives if they're cons to it. Maybe better friends vs friends cards you get from discarding. But more boring cards if you don't discard. Balance is key
+-I'm thinking about this from the standpoint autochess, where you build up your hand then you play it against the opponent 
+-Discard mechanic should have a pro and con
+-Add cards like friends vs friends to keep discard mechanics and other stuff interesting
+-Point based
+

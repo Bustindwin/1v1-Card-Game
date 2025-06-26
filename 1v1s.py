@@ -2,7 +2,7 @@ import random
 import socket
 import threading
 import json
-
+import queue
 
 
 
@@ -90,14 +90,17 @@ class Person:
                         played.append(self.__hand.pop(j)) 
                         break
         return played
+    
 
+    def getcard(self,card):
+        self.__hand.append(card)
 
 
 
 
 def shuffle(deck):
-    for i in range(52):
-        rand=random.randint(0,51)
+    for i in range(len(deck)):
+        rand=random.randint(0,len(deck)-1)
         deck[i], deck[rand] = deck[rand], deck[i]
 
 
@@ -129,7 +132,7 @@ def sortcards(cards):
     return cards
 
             
-def deal(deck,p1,p2):
+def initialdeal(deck,p1,p2):
     count=0
     hand1=[]
     hand2=[]
@@ -140,22 +143,9 @@ def deal(deck,p1,p2):
     p2.sethand(hand2)
 
 
-def handle_p(player_socket,player):
-    shand=player.handaslist()
-    dshand=json.dumps(shand)
-    #print(information[0])
-    player_socket.sendall(dshand.encode())
-    data=player_socket.recv(1024)
-    played=json.loads(data.decode())
-    played=player.playedcards(played)
-    print(player.getname()+" played:",end="")
-    displaycards(played)
-    sortcards(played)
-    print(player.getname()+" played sorted:",end="")
-    displaycards(played)
-    print(player.getname()+" got:",end="")
-    print(player.stringhand())
-    player_socket.close()
+def deal(deck,player):#deal cards appropriatly depending on their discards and handsize
+    for i in range(10-len(player.gethand())):
+        player.getcard(deck.pop(0))
 
 
 def randomamount(hand,num):
@@ -176,6 +166,23 @@ def ispair(played):
                 break
             if played[i].gettotvalue()==played[i-1].gettotvalue():
                 return played[i-1:i+1]
+    return []
+
+
+def isdoublepair(played):
+    first=True
+    max=[]
+    if len(played)>=4:
+        for i in range(len(played)-1,-1,-1):
+            if i-1<0:
+                break
+            if played[i].gettotvalue()==played[i-1].gettotvalue():
+                if first:
+                    first=False
+                    max.append(played[i-1:i+1])
+                    continue
+                if max[0][0].gettotvalue()!=played[i].gettotvalue():
+                    return max[0]+played[i-1:i+1]
     return []
 
 
@@ -387,35 +394,55 @@ def ifin(hand1,hand2):
     return False
 
 
+def addvalueofcards(played):
+    totalcardsvalue=0
+    for i in range(len(played)):
+        totalcardsvalue+=played[i].getvalue()
+    return totalcardsvalue
+
+
 def pickcombo(played):
     combo=[]
     if len(isstraightflush(played))!=0:
-        combo=isstraightflush(played)
-    
+        combo.append(isstraightflush(played))
+        combo.append(9*addvalueofcards(isstraightflush(played)))
+
     elif len(isfourofakind(played))!=0:
-        combo=isfourofakind(played)
+        combo.append(isfourofakind(played))
+        combo.append(8*addvalueofcards(isfourofakind(played)))
 
     elif len(isfullhouse(played))!=0:
-        combo=isfullhouse(played)
+        combo.append(isfullhouse(played))
+        combo.append(7*addvalueofcards(isfullhouse(played)))
 
     elif len(isflush(played))!=0:
-        combo=isflush(played)
+        combo.append(isflush(played))
+        combo.append(6*addvalueofcards(isflush(played)))
 
     elif len(isstraight(played))!=0:
-        combo=isstraight(played)
+        combo.append((isstraight(played)))
+        combo.append(5*addvalueofcards(isstraight(played)))
 
     elif len(isthreeofakind(played))!=0:
-        combo=isthreeofakind(played)
-    
+        combo.append(isthreeofakind(played))
+        combo.append(4*addvalueofcards(isthreeofakind(played)))
+
+    elif len(isdoublepair(played))!=0:
+        combo.append(isdoublepair(played))
+        combo.append(3*addvalueofcards(isdoublepair(played)))
+
     elif len(ispair(played))!=0:
-        combo=ispair(played)
+        combo.append(ispair(played))
+        combo.append(2*addvalueofcards(ispair(played)))
 
     else:
-        combo.append(played[-1])
-    return combo
-        
+        combo.append([played[-1]])#make a function so that it picks a specific card you want to choose
+        combo.append(1*addvalueofcards([played[-1]]))
 
-def testhand(deck,amount):
+    return combo
+
+
+def testplayed(deck,amount):
     while True:
         randoms=randomamount(deck,amount)
         print(amount,"Randoms are:",end="")
@@ -424,12 +451,47 @@ def testhand(deck,amount):
         print(amount,"Randoms sorted are:",end="")
         displaycards(played)
         print("Combo:",end="")
-        displaycards(pickcombo(played))
+        combo=pickcombo(played)
+        displaycards(combo[0])
         print("\n")
+        print("Points:"+str(combo[1]))
         #count+=1
         input()
         
+
+def cardsaslist(cards):
+    cardlist=[]
+    for i in range(len(cards)):
+        cardlist.append(cards[i].sname())
+    return cardlist
         
+
+def addtodeck(deck,cards):
+    deck+cards
+
+
+def handle_p(player_socket,player,deck,result):
+    #print(len(player.gethand()))
+    shand=player.handaslist()#returns a list of cards in your hands that are strings
+    dshand=json.dumps(shand)#It takes a Python object and converts it into its JSON string representation    #print(information[0])
+    player_socket.sendall(dshand.encode())#.encode() method is used to convert a string (which is a sequence of Unicode characters) into a sequence of bytes, using a specified character encoding. 
+    #print(information[0])
+    #print(dshand)
+    played=player_socket.recv(1024)
+    played=json.loads(played.decode())#decode changes from byte to string, then load changes from json string format to a python object
+    played=player.playedcards(played)
+    print(player.getname()+" played:",end="")
+    sortcards(played)
+    displaycards(played)
+    addtodeck(deck,played)
+    # print(player.getname()+" got:",end="")
+    # print(player.stringhand())
+    # player_socket.close()    
+
+
+
+
+
 def main():
     p1=Person("P1")
     p2=Person("P2")
@@ -453,43 +515,8 @@ def main():
                 value=11
             card=Cards(name,value,addvalue,suit[j])
             deck.append(card)
-    '''
-    display(deck)
     shuffle(deck)
-    print("Shuffled deck\n")
-    display(deck)
-    print("------------------------------------")
-    deal(deck,p1,p2)
-    print("Player 1's hand\n")
-    display(p1)
-    print("------------------------------------")
-    print("Player 2's hand\n")
-    display(p2)
-    print("------------------------------------")
-    print("Remaining Deck\n")
-    
-    count=0
-    amount=20
-    while True:
-        while True:
-            randoms=randomamount(deck,amount)
-            print(amount,"randoms are:",end="")
-            displaycards(randoms)
-            played=sortcards(randoms)
-            print(amount,"randoms sorted are:",end="")
-            displaycards(played)
-            if isstraightflush(played):
-                print("Is straight flush")
-                break
-            print("\n")
-            count+=1
-            input()
-        break
-    #print("Count:"+str(count))
-    
-    '''
-    testhand(deck,4)
-    '''
+    initialdeal(deck,p1,p2)
     server_socket=socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.bind(('localhost', 5000))
     server_socket.listen(2)
@@ -499,12 +526,27 @@ def main():
     print("Player 2 connected:", addr2)
     #shand1="Your hand:"+p1.stringhand()+"\n"
     #shand2="Your hand:"+p2.stringhand()+"\n"
-    threading.Thread(target=handle_p, args=(player1_socket, p1)).start()
-    threading.Thread(target=handle_p, args=(player2_socket, p2)).start()
-    '''
-    
+    while True:
+        result1=queue.Queue()#used in order to get the results of each players hand
+        result2=queue.Queue()
+        thread1=threading.Thread(target=handle_p, args=(player1_socket, p1, deck, result1))
+        thread2=threading.Thread(target=handle_p, args=(player2_socket, p2, deck, result2))
+        thread1.start()
+        thread2.start()   
+        thread1.join()
+        thread2.join()
+        shuffle(deck)
+        deal(deck,p1)
+        deal(deck,p2)
+        print(p1.getname()+" new cards:",end="")
+        displaycards(p1.gethand())
+        print(p2.getname()+" new cards:",end="")
+        displaycards(p2.gethand())
+        input()
+    player1_socket.close()
+    player2_socket.close()
 main()
 
-#rule of thumb just go with the trajectory of the game, keep it simple for now, maybe the more combination of cards the better like add rules from thirteen to make it more intersting like the type of combos
-#now maybe integrate what type of combo your cards that you selected are
-#move on to other combos like (three of a kind, fullhouse), sorted function is not correct(doesn't sort face cards and 10's correctly)
+#Gotta work on how the discarded and final round should play out
+#Make it so that players have to wait their turn before playing, on the part where it doesn't send over the choices/played cards
+
